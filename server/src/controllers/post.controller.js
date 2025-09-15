@@ -8,7 +8,7 @@ import uploadImageOnCloudinary from "../utils/cloudinary.js";
 const createPost = async (req, res) => {
   try {
     if (!req.body) {
-      return res.status(400).json({ msg: "post is empty" });
+      return res.status(400).json({ message: "post is empty",success:false });
     }
     const { caption } = req.body;
 
@@ -17,13 +17,13 @@ const createPost = async (req, res) => {
     console.log(postImageLocalPath)
 
     if(!postImageLocalPath){
-        return res.status(400).json({msg:"you dont have postImage local path"})
+        return res.status(400).json({message:"you dont have postImage local path",success:false})
     }
 
     const postImage = await uploadImageOnCloudinary(postImageLocalPath)
 
     if(!postImage){
-        return res.status(400).json({msg:"you dont have postImage"})
+        return res.status(400).json({message:"you dont have postImage",success:false})
     }
 
     const createdPost = await Post.create({
@@ -31,10 +31,10 @@ const createPost = async (req, res) => {
       userId: req.user._id,
       postImage:postImage?.url
     });
-    res.status(201).json({ msg: "post created successfully", createdPost });
+    res.status(201).json({ message: "post created successfully", data:createdPost,success:true });
   } catch (error) {
     console.log("Something went wrong while creating a post : ", error.message);
-    // return res.json(400).json({msg:"Something went wrong while creating a post"})
+    // return res.json(400).json({message:"Something went wrong while creating a post"})
   }
 };
 
@@ -46,14 +46,14 @@ const updatePost = async (req, res) => {
     const existedPost = await Post.findById(postId)
     
     if (!existedPost) {
-      return res.status(400).json({msg:"Post does'nt exists"})
+      return res.status(400).json({message:"Post does'nt exists",success:false})
     }
     const LocalPostImage = req.file?.path
 
     const postImage = await uploadImageOnCloudinary(LocalPostImage)
 
     if (existedPost.userId.toString() != req.user?._id.toString()){
-        return res.status(400).json({msg:"you cannot edit other people post"})
+        return res.status(400).json({message:"you cannot edit other people post",success:false})
     }
     const post = await Post.findByIdAndUpdate(
       postId,
@@ -61,7 +61,7 @@ const updatePost = async (req, res) => {
       { new: true }
     );
     post.save();
-    return res.status(200).json({ msg: "post updated successfully", post });
+    return res.status(200).json({ message: "post updated successfully", data:post,success:true });
   } catch (error) {
     console.log("Something went wrong while edit the post : ", error.message);
   }
@@ -72,24 +72,24 @@ const deletePost = async (req, res) => {
 
   const existedPost= await Post.findById(postId)
   if (!existedPost) {
-    return res.status(400).json({msg:"Post does'nt exists"})
+    return res.status(400).json({message:"Post does'nt exists",success:false})
   }
 if (existedPost.userId.toString() != req.user?._id.toString())
    {
-    return res.status(400).json({msg:"you cannot delete other people post"})
+    return res.status(400).json({message:"you cannot delete other people post",success:false})
    }
   await Post.findByIdAndDelete(postId);
 
-  return res.status(200).json({ msg: "deleted successfully" });
+  return res.status(200).json({ message: "post deleted successfully",success:true });
 };
 
 const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find({userId:req?.user.id});
-    return res.status(200).json({ msg: "All users posts created by users", posts });
+    return res.status(200).json({ message: "All posts", data:posts ,success:true});
   } catch (error) {
     console.log("Cannot get all posts:", error.message);
-    return res.status(400).json({ msg: "Can't get all posts" });
+    return res.status(400).json({ message: "Can't get all posts" });
   }
 };
 
@@ -147,13 +147,13 @@ const getOnePost = async(req,res) => {
     ]);
 
     if (!post.length) {
-      return res.status(404).json({ msg: "Post not found" });
+      return res.status(404).json({ message: "Post not found",success:false });
     }
 
-    return res.status(200).json({ msg: "Post details fetched", post: post[0] });
+    return res.status(200).json({ message: "Post details fetched", data: post[0],success:true });
   } catch (error) {
     console.log("Error fetching post details:", error.message);
-    return res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 } 
 

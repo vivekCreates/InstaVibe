@@ -8,15 +8,15 @@ const likeOrDislikePost = async (req, res) => {
 
     if (likeExist) {
       await Like.findByIdAndDelete(likeExist._id);
-      return res.status(200).json({ msg: "post disliked" });
+      return res.status(200).json({ message: "post disliked",success:true });
     }
     await Like.create({
       postId,
       likedBy: req.user._id,
     });
-    return res.status(200).json({ msg: "post liked"});
+    return res.status(200).json({ message: "post liked",success:true});
   } catch (error) {
-    res.status(400).json({ msg: "something went wrong while like the post" });
+    res.status(400).json({ message: "something went wrong while like the post" });
   }
 };
 

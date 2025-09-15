@@ -11,13 +11,13 @@ const bookmarkPost = async (req, res) => {
   const postAlreadySaved = await Bookmark.findOne({ savedPost: postId });
   if (postAlreadySaved) {
     await Bookmark.findByIdAndDelete(postAlreadySaved._id)
-    return res.status(200).json({msg:"post removed from bookmark"})
+    return res.status(200).json({message:"post removed from bookmark"})
   }
   await Bookmark.create({
     savedPost: post._id,
     savedBy: user._id,
   });
-  return res.status(200).json({msg:"post saved in bookmark"})
+  return res.status(200).json({message:"post saved in bookmark"})
 };
 
 export { bookmarkPost };

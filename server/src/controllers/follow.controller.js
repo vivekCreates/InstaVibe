@@ -5,10 +5,10 @@ const followOrUnfollowUser = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ msg: "can't have id while follow " });
+      return res.status(400).json({ message: "can't have id while follow ",success:false });
     }
     if (id.toString() == req.user._id.toString()) {
-      return res.status(400).json({ msg: "you cannot follow yourself" });
+      return res.status(400).json({ message: "you cannot follow yourself",success:false });
     }
 
     const user = await User.findById(id);
@@ -16,14 +16,14 @@ const followOrUnfollowUser = async (req, res) => {
 
     if (hasFollow) {
       await Follow.findByIdAndDelete(hasFollow._id);
-      return res.status(400).json({ msg: "unFollow successfully" });
+      return res.status(400).json({ message: "unFollow successfully" ,success:true});
     }
     await Follow.create({
       followedTo: user._id,
       followedBy: req.user._id,
     });
 
-    return res.status(200).json({ msg: "follow successfully" });
+    return res.status(200).json({ message: "follow successfully",success:true });
   } catch (error) {
     console.log(`something went wrong following : ${error.message}`);
   }

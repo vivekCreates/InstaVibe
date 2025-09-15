@@ -25,26 +25,26 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = async (req, res) => {
   try {
     if (!req.body) {
-      return res.status(402).json({ msg: "All fields are required." });
+      return res.status(402).json({ message: "All fields are required.",success:false });
     }
 
     const { username, email, password } = req.body;
 
     if ([username, email, password].some((field) => field?.trim() === "")) {
-      return res.status(400).json({ msg: "All fields are required." });
+      return res.status(400).json({ message: "All fields are required." ,success:false});
     }
 
     if (password.length < 8) {
       return res
         .status(400)
-        .json({ msg: "password must be atleast 8 character" });
+        .json({ message: "password must be atleast 8 character",success:false });
     }
 
     const userExist = await User.findOne({
       $or: [{ username }, { email }, { password }],
     });
     if (userExist) {
-      return res.status(401).json({ msg: "user already exists." });
+      return res.status(401).json({ message: "user already exists.",success:false });
     }
     const avatarLocalPath = req.file?.path;
 
@@ -63,7 +63,7 @@ const registerUser = async (req, res) => {
       password,
       avatar: avatar?.url,
     });
-    return res.status(201).json({ msg: "user registered succesfully.", user });
+    return res.status(201).json({ message: "user registered succesfully.", data:user,success:true });
   } catch (error) {
     console.log(
       "Something went wrong while registering the user : ",
@@ -80,14 +80,14 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res
         .status(400)
-        .json({ msg: "You don't have an account please register" });
+        .json({ message: "You don't have an account please register",success:false });
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
     // console.log("ispasswordvalid",isPasswordValid)
 
     if (!isPasswordValid) {
-      return res.status(401).json({ msg: "username or password is incorrect" });
+      return res.status(401).json({ message: "username or password is incorrect",success:false });
     }
 
     const { accessToken,refreshToken } = await generateAccessAndRefreshToken(user._id);
@@ -96,7 +96,7 @@ const loginUser = async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken,options)
       .cookie("refreshToken", refreshToken,options)
-      .json({ msg: "user login succesfully", user,accessToken,refreshToken });
+      .json({ message: "user login succesfully", data:user,accessToken,refreshToken,success:true });
   } catch (error) {
     console.log("Somenthing went wrong while user login ", error.message);
   }
@@ -116,9 +116,9 @@ const logoutUser = async (req, res) => {
     return res
       .status(200)
       .clearCookie("accessToken",options)
-      .json({ msg: "user logout successfully", user: req.user });
+      .json({ message: "user logout successfully", data:{},success:true });
   } catch (error) {
-    return res.status(500).json({ msg: "something went wrong while logout" });
+    return res.status(500).json({ message: "something went wrong while logout" });
   }
 };
 
@@ -126,7 +126,7 @@ const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     
-    return res.status(200).json({msg:"current user fetch successfully", currentUser: user });
+    return res.status(200).json({message:"current user fetch successfully", data: user ,success:true});
   } catch (error) {
     return res.status(405).json({ mgs: "can't get current user " });
   }
@@ -146,9 +146,6 @@ const updateUser = async(req, res) => {
       console.log("You don't have avatar");
     }
 
-    console.log("username: ",username);
-    console.log("email: ",email);
-    console.log("avatar: ",avatar);
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     { $set:{ username,email,avatar}},
@@ -157,7 +154,7 @@ const updateUser = async(req, res) => {
 
   return res
     .status(200)
-    .json({ msg: "user updated successfully", updatedUser });
+    .json({ message: "user updated successfully", data:updatedUser,success:true });
 };
 
 const changeUserPassword = async (req, res) => {
@@ -166,11 +163,11 @@ const changeUserPassword = async (req, res) => {
   const checkPassword = await user.isPasswordCorrect(oldPassword);
   console.log(checkPassword)
   if (!checkPassword) {
-    return res.status(400).json({ msg: "your old password in incorrect" });
+    return res.status(400).json({ message: "your old password in incorrect",success:false });
   }
   user.password = newPassword;
   user.save();
-  return res.status(200).json({ msg: "password changed" });
+  return res.status(200).json({ message: "password changed successfully",success:true });
 };
 
 const getUserProfile = async (req, res) => {
@@ -252,7 +249,7 @@ const getUserProfile = async (req, res) => {
         }
       }
     ]);
-    return res.status(200).json({ msg: "user profile", profile:profile[0] });
+    return res.status(200).json({ message: "user profile fetch successfully", data:profile[0],success:true });
   } catch (error) {
     console.log(
       "Something went wrong while getting user profile : ",
