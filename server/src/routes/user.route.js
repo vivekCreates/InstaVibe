@@ -21,8 +21,8 @@ router.route('/login').post(loginUser)
 router.route('/logout').post(verifyJWT, logoutUser)
 router.route('/me').get(verifyJWT,getCurrentUser)
 router.route('/profile/:userId').get(verifyJWT,getUserProfile)
-router.route('/update').patch(verifyJWT,updateUser)
-router.route('/change-password').patch(verifyJWT,upload.single('avatar'), changeUserPassword)
+router.route('/change-password').patch(verifyJWT, changeUserPassword)
+router.route('/update-profile').patch(verifyJWT,upload.single('avatar'),updateUser)
 
 
 export default router

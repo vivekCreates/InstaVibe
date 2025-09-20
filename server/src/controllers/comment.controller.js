@@ -9,12 +9,16 @@ const createComment = async (req, res) => {
     const createdComment = await Comment.create({
       comment,
       userId: req.user?._id,
-      postId,
+      postId: new mongoose.Types.ObjectId(postId),
     });
 
     return res
       .status(200)
-      .json({ message: "comment created successfully", data:createdComment,success:true });
+      .json({
+        message: "comment created successfully",
+        data: createdComment,
+        success: true,
+      });
   } catch (error) {
     console.log(
       "something went wrong while creating comment : ",
@@ -32,15 +36,14 @@ const updateComment = async (req, res) => {
     if (!existedComment) {
       return res.status(400).json({
         message: "comment does'nt exists",
-        success:false
+        success: false,
       });
     }
-   
-    
-    if ((existedComment.userId.toString() != req.user._id)) {
+
+    if (existedComment.userId.toString() != req.user._id) {
       return res.status(400).json({
         message: "you cannot edit other people comment",
-        success:false
+        success: false,
       });
     }
     await Comment.findByIdAndUpdate(
@@ -53,7 +56,9 @@ const updateComment = async (req, res) => {
       { new: true }
     );
 
-    return res.status(200).json({ message: "comment updated successfully",success:true });
+    return res
+      .status(200)
+      .json({ message: "comment updated successfully", success: true });
   } catch (error) {
     console.log(
       "Something went wrong while updating the comment : ",
@@ -70,23 +75,39 @@ const deleteComment = async (req, res) => {
     if (!existedComment) {
       return res.status(400).json({
         message: "comment does'nt exists",
-        success:false
+        success: false,
       });
     }
-   
-    
-    if ((existedComment.userId.toString() != req.user._id)) {
+
+    if (existedComment.userId.toString() != req.user._id) {
       return res.status(400).json({
         message: "you cannot delete other people post",
-        success:false
+        success: false,
       });
     }
     await Comment.findByIdAndDelete(commentId);
-    return res.status(200).json({ message: "comment deleted successfully",success:true });
+    return res
+      .status(200)
+      .json({ message: "comment deleted successfully", success: true });
   } catch (error) {
     console.log("Something went wrong while deleting the comment");
     return res.status(400).json({ message: "comment not deleted" });
   }
 };
 
-export { createComment, updateComment, deleteComment };
+const getCommnetsById = async (req, res) => {
+  const { postId } = req.params;
+  try {
+    const comments = await Comment.find({ postId });
+    if (!comments) {
+      return res.status(404).json({ message: "Comments not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Comments fetch successfully", data: comments });
+  } catch (error) {
+    return res.status(400).json({ message: "comments not fetched" });
+  }
+};
+export { createComment, updateComment, deleteComment, getCommnetsById };

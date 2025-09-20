@@ -25,7 +25,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = async (req, res) => {
   try {
     if (!req.body) {
-      return res.status(402).json({ message: "All fields are required.",success:false });
+      return res.status(400).json({ message: "All fields are required.",success:false });
     }
 
     const { username, email, password } = req.body;
@@ -44,18 +44,11 @@ const registerUser = async (req, res) => {
       $or: [{ username }, { email }, { password }],
     });
     if (userExist) {
-      return res.status(401).json({ message: "user already exists.",success:false });
+      return res.status(409).json({ message: "user already exists.",success:false });
     }
     const avatarLocalPath = req.file?.path;
 
-    if (!avatarLocalPath) {
-      console.log("You don't have avatar local path ");
-    }
-
     const avatar = await uploadImageOnCloudinary(avatarLocalPath);
-    if (!avatar) {
-      console.log("You don't have avatar");
-    }
 
     const user = await User.create({
       username,
@@ -76,6 +69,7 @@ const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+    console.log(username)
 
     if (!user) {
       return res
@@ -84,7 +78,7 @@ const loginUser = async (req, res) => {
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
-    // console.log("ispasswordvalid",isPasswordValid)
+
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: "username or password is incorrect",success:false });
@@ -146,9 +140,10 @@ const updateUser = async(req, res) => {
       console.log("You don't have avatar");
     }
 
+
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
-    { $set:{ username,email,avatar}},
+    { $set:{ username,email,avatar:avatar.secure_url}},
     { new: true }
   );
 
@@ -172,11 +167,14 @@ const changeUserPassword = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
   const {userId} = req.params;
+  if(!userId){
+    return res.status(200).json({success:false,message:"userId is required."})
+  }
   try {
     const profile = await User.aggregate([
       {
         $match:{
-          _id:userId
+          _id:new mongoose.Types.ObjectId(userId)
         }
       },
       {
@@ -249,6 +247,7 @@ const getUserProfile = async (req, res) => {
         }
       }
     ]);
+    console.log(profile)
     return res.status(200).json({ message: "user profile fetch successfully", data:profile[0],success:true });
   } catch (error) {
     console.log(

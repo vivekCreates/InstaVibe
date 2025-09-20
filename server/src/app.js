@@ -10,10 +10,11 @@ app.use(express.urlencoded({extended:true}))
 app.use(express.static("public"))
 app.use(cookieParser())
 app.use(cors({
-    origin:process.env.CORS_ORIGIN,
-    credential:true,
-    
+  origin: "http://localhost:5173",
+  credentials: true,
 }))
+
+console.log()
 
 app.get("/",(req,res)=>{
     return res.send("Hello i am home")

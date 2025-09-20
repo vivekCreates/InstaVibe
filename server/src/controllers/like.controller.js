@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Like } from "../models/like.model.js";
 import { Post } from "../models/post.model.js";
 
@@ -11,7 +12,7 @@ const likeOrDislikePost = async (req, res) => {
       return res.status(200).json({ message: "post disliked",success:true });
     }
     await Like.create({
-      postId,
+      postId:new mongoose.Types.ObjectId(postId),
       likedBy: req.user._id,
     });
     return res.status(200).json({ message: "post liked",success:true});
